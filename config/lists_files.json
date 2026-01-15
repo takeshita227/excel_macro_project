@@ -1,0 +1,23 @@
+≪書き方③≫
+{
+  "lists": {
+    "user_list": {
+      "description": "ユーザー一覧",
+      "path": "\\\\SERVER01\\share\\lists\\users.csv",
+      "type": "csv"
+    },
+    "product_list": {
+      "description": "製品マスタ",
+      "path": "\\\\SERVER01\\share\\lists\\products.xlsx",
+      "sheet": "master"
+    },
+    "holiday_list": {
+      "description": "休日カレンダー",
+      "path": "\\\\SERVER01\\share\\lists\\holiday.json",
+      "type": "json"
+    }
+  }
+}
+※1.UNCパスで統一＝「¥サーバー名¥共有名¥フォルダ¥ファイル」
+※2.type / sheet は 処理分岐用メタ情報
+※3.description は仕様書と紐づけ可能
