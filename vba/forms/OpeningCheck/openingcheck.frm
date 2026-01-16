@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} openingcheck 
-   Caption         =   "UserForm1"
-   ClientHeight    =   6000
+   Caption         =   "名前入力"
+   ClientHeight    =   3144
    ClientLeft      =   156
    ClientTop       =   576
-   ClientWidth     =   5700
+   ClientWidth     =   6264
    OleObjectBlob   =   "openingcheck.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
