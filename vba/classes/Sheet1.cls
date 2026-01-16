@@ -1,17 +1,44 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Sheet1"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
 
-    ' E4 ã‚’é¸æŠã—ãŸã¨ã â†’ openingcheck ã‚’é–‹ã
-    If Target.Address = "$E$4" Then
-        openingcheck.Tag = Target.Address
-        openingcheck.Show
-        Exit Sub
-    End If
+Application.ScreenUpdating = False   ' š ‰æ–ÊXV’â~
 
-    ' AC8:AC73 ã‚’é¸æŠã—ãŸã¨ã â†’ TenKey ã‚’é–‹ã
-    If Not Intersect(Target, Me.Range("AC8:AC73")) Is Nothing Then
-        TenKey.Tag = Target.Address
-        TenKey.Show
-        Exit Sub
-    End If
+' E4 ‚ğ‘I‘ğ‚µ‚½‚Æ‚« ¨ openingcheck ‚ğŠJ‚­
+If Target.Address = "$E$4" Then
+    openingcheck.Tag = Target.Address
+    openingcheck.Show
+    Application.ScreenUpdating = True
+    Exit Sub
+End If
+
+' AC8:AC73 ‚ğ‘I‘ğ‚µ‚½‚Æ‚« ¨ TenKey ‚ğŠJ‚­
+If Not Intersect(Target, Me.Range("AC8:AC73")) Is Nothing Then
+    TenKey.Tag = Target.Address
+    TenKey.Show
+    Application.ScreenUpdating = True
+    Exit Sub
+End If
+
+Application.ScreenUpdating = True   ' ”O‚Ì‚½‚ß
 
 End Sub
+
+
+
+
+
+
+
+
+
+
+
+
