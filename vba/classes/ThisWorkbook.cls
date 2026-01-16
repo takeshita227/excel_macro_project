@@ -17,3 +17,7 @@ Private Sub Workbook_SheetBeforeDoubleClick(ByVal Sh As Object, ByVal Target As 
     End If
 
 End Sub
+
+Private Sub Workbook_Open()
+    LineIDCheck.Show
+End Sub
