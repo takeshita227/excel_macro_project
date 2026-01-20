@@ -34,6 +34,14 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
         Exit Sub
     End If
 
+    ' ¥ AD8:AD73 ‚ğ‘I‘ğ‚µ‚½‚Æ‚« ¨ LineStop ‚ğ‹N“®
+    If Not Intersect(Target, Me.Range("AD8:AD73")) Is Nothing Then
+        LineStop.Tag = Target.Address
+        LineStop.Show
+        Application.ScreenUpdating = True
+        Exit Sub
+    End If
+
     Application.ScreenUpdating = True   ' ”O‚Ì‚½‚ß
 
 End Sub
