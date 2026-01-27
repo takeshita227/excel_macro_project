@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} LineStop 
    Caption         =   "ライン停止内容"
-   ClientHeight    =   8940.001
-   ClientLeft      =   132
-   ClientTop       =   576
-   ClientWidth     =   5328
+   ClientHeight    =   11175
+   ClientLeft      =   195
+   ClientTop       =   795
+   ClientWidth     =   8295.001
    OleObjectBlob   =   "LineStop.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -106,73 +106,82 @@ ErrorHandler:
     TimeToSeconds = 0
 End Function
 
-' ▼ TextBox4（担当者ID）が変更されたときに TextBox5（担当者名）を自動入力
-Private Sub TextBox4_Change()
-    Dim userId As String, userName As String
-    
-    userId = Me.TextBox4.Text
-    
-    ' 8桁を超えた場合はリセット
-    If Len(userId) > 8 Then
-        Me.TextBox4.Text = ""
-        Me.TextBox5.Text = ""
-        Exit Sub
-    End If
-    
-    ' 8桁揃うまで何もしない
-    If Len(userId) < 8 Then
-        Me.TextBox5.Text = ""
-        Exit Sub
-    End If
-    
-    ' 8桁ちょうど揃ったら検索
-    userName = GetUserName(userId)
-    Me.TextBox5.Text = userName
-    
-    If userName <> "" And userName <> "ファイルなし" And userName <> "ファイル開失敗" Then
-        ThisWorkbook.Sheets("生産状況").Range("E4").Value = userName
-    End If
-End Sub
-
-' ▼ TextBox4 にフォーカスが当たったときに中身を削除
-Private Sub TextBox4_Enter()
-    Me.TextBox4.Text = ""
-    Me.TextBox5.Text = ""
-End Sub
-
-' マスターファイルから user_name を検索する関数
-Private Function GetUserName(userId As String) As String
-    Dim masterFile As String, masterBook As Workbook
-    Dim masterSheet As Worksheet, searchRange As Range
-    Dim foundCell As Range, rowIndex As Long
-    
-    masterFile = "C:\Users\h_i_d\Desktop\ProductionSystem\master\excel\user_master.xlsx"
-    
-    If Dir(masterFile) = "" Then
-        GetUserName = "ファイルなし"
-        Exit Function
-    End If
-    
-    On Error Resume Next
-    Set masterBook = Workbooks.Open(masterFile, , True)
-    On Error GoTo 0
-    
-    If masterBook Is Nothing Then
-        GetUserName = "ファイル開失敗"
-        Exit Function
-    End If
-    
-    Set masterSheet = masterBook.Sheets("Sheet1")
-    Set searchRange = masterSheet.Range("A:A")
-    
-    Set foundCell = searchRange.Find(What:=userId, LookAt:=xlWhole, MatchCase:=False)
-    
-    If Not foundCell Is Nothing Then
-        rowIndex = foundCell.Row
-        GetUserName = masterSheet.Range("B" & rowIndex).Value
-    Else
-        GetUserName = ""
-    End If
-    
-    masterBook.Close SaveChanges:=False
+' ▼ 開始時刻を10分単位に丸め（常に切り捨て）
+Private Function RoundBlockStart(timeStr As String) As String
+    Dim parts() As String, h As Long, m As Long
+    parts = Split(timeStr, ":")
+    h = CLng(parts(0))
+    m = CLng(parts(1))
+    m = (m \ 10) * 10
+    RoundBlockStart = Format(h, "00") & ":" & Format(m, "00")
 End Function
+
+' ▼ 終了時刻を10分単位に丸め（56分までは切り捨て、57分以降は切り上げ）
+Private Function RoundBlockEnd(timeStr As String) As String
+    Dim parts() As String, h As Long, m As Long
+    parts = Split(timeStr, ":")
+    h = CLng(parts(0))
+    m = CLng(parts(1))
+    
+    If m <= 56 Then
+        m = (m \ 10) * 10
+    Else
+        m = ((m \ 10) + 1) * 10
+        If m = 60 Then
+            h = h + 1
+            m = 0
+        End If
+    End If
+    
+    RoundBlockEnd = Format(h, "00") & ":" & Format(m, "00")
+End Function
+
+' ▼ CommandButton3 を押したら開始～復旧の間と停止時間ブロックを塗ってフォームを閉じる
+Private Sub CommandButton3_Click()
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim cell As Range
+    Dim startRow As Long, endRow As Long
+    Dim startTimeRounded As String, endTimeRounded As String
+    
+    Set ws = ThisWorkbook.Sheets("生産状況")
+    Set rng = ws.Range("C8:C73")   ' C列の対象範囲
+    
+    startRow = 0
+    endRow = 0
+    
+    ' 入力時刻を10分単位に丸める
+    startTimeRounded = RoundBlockStart(TextBox1.Value)
+    endTimeRounded = RoundBlockEnd(TextBox2.Value)
+    
+    ' 開始時刻の行を探す
+    For Each cell In rng
+        If Not IsEmpty(cell.Value) Then
+            If Format(cell.Value, "hh:mm") = startTimeRounded Then
+                startRow = cell.Row
+                Exit For
+            End If
+        End If
+    Next cell
+    
+    ' 終了時刻の行を探す
+    For Each cell In rng
+        If Not IsEmpty(cell.Value) Then
+            If Format(cell.Value, "hh:mm") = endTimeRounded Then
+                endRow = cell.Row
+                Exit For
+            End If
+        End If
+    Next cell
+    
+    ' 開始～復旧の間を塗る（D列のみ）
+    If startRow > 0 And endRow > 0 Then
+        Dim r As Long
+        For r = startRow To endRow
+            ws.Cells(r, 4).Interior.Color = RGB(255, 200, 200) ' D列のみ塗る
+        Next r
+    End If
+    
+    ' フォームを閉じる
+    Unload Me
+End Sub
