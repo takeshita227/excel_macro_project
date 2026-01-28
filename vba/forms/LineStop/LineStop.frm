@@ -106,82 +106,104 @@ ErrorHandler:
     TimeToSeconds = 0
 End Function
 
-' ▼ 開始時刻を10分単位に丸め（常に切り捨て）
-Private Function RoundBlockStart(timeStr As String) As String
-    Dim parts() As String, h As Long, m As Long
-    parts = Split(timeStr, ":")
-    h = CLng(parts(0))
-    m = CLng(parts(1))
-    m = (m \ 10) * 10
-    RoundBlockStart = Format(h, "00") & ":" & Format(m, "00")
-End Function
-
-' ▼ 終了時刻を10分単位に丸め（56分までは切り捨て、57分以降は切り上げ）
-Private Function RoundBlockEnd(timeStr As String) As String
-    Dim parts() As String, h As Long, m As Long
-    parts = Split(timeStr, ":")
-    h = CLng(parts(0))
-    m = CLng(parts(1))
+' ▼ TextBox4（担当者ID）が変更されたときに TextBox5（担当者名）を自動入力
+Private Sub TextBox4_Change()
+    Dim userId As String, userName As String
     
-    If m <= 56 Then
-        m = (m \ 10) * 10
-    Else
-        m = ((m \ 10) + 1) * 10
-        If m = 60 Then
-            h = h + 1
-            m = 0
-        End If
+    userId = Me.TextBox4.Text
+    
+    ' 8桁を超えた場合はリセット
+    If Len(userId) > 8 Then
+        Me.TextBox4.Text = ""
+        Me.TextBox5.Text = ""
+        Exit Sub
     End If
     
-    RoundBlockEnd = Format(h, "00") & ":" & Format(m, "00")
-End Function
+    ' 8桁揃うまで何もしない
+    If Len(userId) < 8 Then
+        Me.TextBox5.Text = ""
+        Exit Sub
+    End If
+    
+    ' 8桁ちょうど揃ったら検索
+    userName = GetUserName(userId)
+    Me.TextBox5.Text = userName
+    
+    If userName <> "" And userName <> "ファイルなし" And userName <> "ファイル開失敗" Then
+        ThisWorkbook.Sheets("生産状況").Range("E4").Value = userName
+    End If
+End Sub
 
-' ▼ CommandButton3 を押したら開始～復旧の間と停止時間ブロックを塗ってフォームを閉じる
+' ▼ TextBox4 にフォーカスが当たったときに中身を削除
+Private Sub TextBox4_Enter()
+    Me.TextBox4.Text = ""
+    Me.TextBox5.Text = ""
+End Sub
+
 Private Sub CommandButton3_Click()
+
+    Dim inputTime As String
     Dim ws As Worksheet
-    Dim rng As Range
-    Dim cell As Range
-    Dim startRow As Long, endRow As Long
-    Dim startTimeRounded As String, endTimeRounded As String
+    Dim rng As Range, cell As Range
+    Dim matchRow As Long
+    Dim stopTime As String
+    Dim stopMinutes As Long
+    Dim extraRows As Long
+    Dim i As Long
+    
+    inputTime = Trim(Me.TextBox1.Value)
+    
+    If inputTime = "" Then
+        MsgBox "発生時刻が入力されていません。", vbExclamation
+        Exit Sub
+    End If
+    
+    ' 時刻を正規化
+    On Error Resume Next
+    inputTime = Format(CDate(inputTime), "h:mm")
+    On Error GoTo 0
     
     Set ws = ThisWorkbook.Sheets("生産状況")
-    Set rng = ws.Range("C8:C73")   ' C列の対象範囲
+    Set rng = ws.Range("C8:C73")
     
-    startRow = 0
-    endRow = 0
+    matchRow = 0
     
-    ' 入力時刻を10分単位に丸める
-    startTimeRounded = RoundBlockStart(TextBox1.Value)
-    endTimeRounded = RoundBlockEnd(TextBox2.Value)
-    
-    ' 開始時刻の行を探す
+    ' C8:C73 の中から一致する時刻を探す
     For Each cell In rng
-        If Not IsEmpty(cell.Value) Then
-            If Format(cell.Value, "hh:mm") = startTimeRounded Then
-                startRow = cell.Row
-                Exit For
-            End If
+        If Format(cell.Value, "h:mm") = inputTime Then
+            matchRow = cell.Row
+            Exit For
         End If
     Next cell
     
-    ' 終了時刻の行を探す
-    For Each cell In rng
-        If Not IsEmpty(cell.Value) Then
-            If Format(cell.Value, "hh:mm") = endTimeRounded Then
-                endRow = cell.Row
-                Exit For
-            End If
-        End If
-    Next cell
-    
-    ' 開始～復旧の間を塗る（D列のみ）
-    If startRow > 0 And endRow > 0 Then
-        Dim r As Long
-        For r = startRow To endRow
-            ws.Cells(r, 4).Interior.Color = RGB(255, 200, 200) ' D列のみ塗る
-        Next r
+    If matchRow = 0 Then
+        MsgBox "時間表に一致する時刻がありません。", vbExclamation
+        Exit Sub
     End If
     
-    ' フォームを閉じる
+    ' ▼ 停止時間を取得（TextBox3）
+    stopTime = Me.TextBox3.Value
+    
+    ' 停止時間を分に変換
+    On Error Resume Next
+    stopMinutes = Hour(CDate(stopTime)) * 60 + Minute(CDate(stopTime))
+    On Error GoTo 0
+    
+    ' ▼ 追加で塗る行数（10分ごとに1行）
+    If stopMinutes <= 15 Then
+    extraRows = 0
+Else
+    extraRows = (stopMinutes - 16) \ 10 + 1
+End If
+    
+    ' ▼ 行を塗る（基本の1行 + extraRows）
+    For i = 0 To extraRows
+        If matchRow + i <= 73 Then   ' 範囲外に出ないように
+            ws.Cells(matchRow + i, "D").Interior.Color = RGB(255, 200, 200)
+        End If
+    Next i
+
+    ' ▼ フォームを閉じる
     Unload Me
+
 End Sub
