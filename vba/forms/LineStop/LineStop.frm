@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} LineStop 
    Caption         =   "ライン停止内容"
-   ClientHeight    =   11175
-   ClientLeft      =   195
-   ClientTop       =   795
-   ClientWidth     =   8295.001
+   ClientHeight    =   13965
+   ClientLeft      =   225
+   ClientTop       =   915
+   ClientWidth     =   10365
    OleObjectBlob   =   "LineStop.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -35,6 +35,8 @@ Private Sub UserForm_Initialize()
     End If
     
     TextBox3.Value = "時間エラー"
+    
+    ' ▼ 現在時刻をセット
     TextBox0.Value = Format(Now, "hh:mm")
     
     TextBox0.Enabled = False
@@ -46,6 +48,19 @@ Private Sub UserForm_Initialize()
     TextBox5.BackColor = vbWhite
 End Sub
 
+
+' ▼ TextBox0 が消えたら復元
+Private Sub TextBox0_Change()
+    If TextBox0.Value = "" Then
+        TextBox0.Value = Format(Now, "hh:mm")
+    End If
+End Sub
+
+Private Sub TextBox0_Enter()
+    TextBox0.Value = Format(Now, "hh:mm")
+End Sub
+
+
 ' TextBox2（復旧時刻）の変更時に停止時間を計算
 Private Sub TextBox2_Change()
     Call CalculateStopTime
@@ -55,6 +70,7 @@ End Sub
 Private Sub TextBox1_Change()
     Call CalculateStopTime
 End Sub
+
 
 ' 停止時間を計算する関数
 Private Sub CalculateStopTime()
@@ -87,6 +103,7 @@ ErrorHandler:
     TextBox3.Value = "時間エラー"
 End Sub
 
+
 ' 時刻文字列を秒単位に変換
 Private Function TimeToSeconds(timeStr As String) As Long
     Dim parts() As String, hours As Long, minutes As Long
@@ -106,26 +123,24 @@ ErrorHandler:
     TimeToSeconds = 0
 End Function
 
+
 ' ▼ TextBox4（担当者ID）が変更されたときに TextBox5（担当者名）を自動入力
 Private Sub TextBox4_Change()
     Dim userId As String, userName As String
     
     userId = Me.TextBox4.Text
     
-    ' 8桁を超えた場合はリセット
     If Len(userId) > 8 Then
         Me.TextBox4.Text = ""
         Me.TextBox5.Text = ""
         Exit Sub
     End If
     
-    ' 8桁揃うまで何もしない
     If Len(userId) < 8 Then
         Me.TextBox5.Text = ""
         Exit Sub
     End If
     
-    ' 8桁ちょうど揃ったら検索
     userName = GetUserName(userId)
     Me.TextBox5.Text = userName
     
@@ -134,12 +149,15 @@ Private Sub TextBox4_Change()
     End If
 End Sub
 
+
 ' ▼ TextBox4 にフォーカスが当たったときに中身を削除
 Private Sub TextBox4_Enter()
     Me.TextBox4.Text = ""
     Me.TextBox5.Text = ""
 End Sub
 
+
+' ▼ CommandButton3（送信ボタン）
 Private Sub CommandButton3_Click()
 
     Dim inputTime As String
@@ -158,9 +176,9 @@ Private Sub CommandButton3_Click()
         Exit Sub
     End If
     
-    ' 時刻を正規化
+    ' ▼ 10分単位に丸める
     On Error Resume Next
-    inputTime = Format(CDate(inputTime), "h:mm")
+    inputTime = Format(RoundToNearest10Minutes(inputTime), "h:mm")
     On Error GoTo 0
     
     Set ws = ThisWorkbook.Sheets("生産状況")
@@ -168,7 +186,7 @@ Private Sub CommandButton3_Click()
     
     matchRow = 0
     
-    ' C8:C73 の中から一致する時刻を探す
+    ' ▼ C8:C73 の中から一致する時刻を探す
     For Each cell In rng
         If Format(cell.Value, "h:mm") = inputTime Then
             matchRow = cell.Row
@@ -181,28 +199,28 @@ Private Sub CommandButton3_Click()
         Exit Sub
     End If
     
-    ' ▼ 停止時間を取得（TextBox3）
+    ' ▼ 停止時間を取得
     stopTime = Me.TextBox3.Value
     
-    ' 停止時間を分に変換
+    ' ▼ 停止時間を分に変換
     On Error Resume Next
     stopMinutes = Hour(CDate(stopTime)) * 60 + Minute(CDate(stopTime))
     On Error GoTo 0
     
-    ' ▼ 追加で塗る行数（10分ごとに1行）
+    ' ▼ 停止時間に応じて追加行を決定
     If stopMinutes <= 15 Then
-    extraRows = 0
-Else
-    extraRows = (stopMinutes - 16) \ 10 + 1
-End If
+        extraRows = 0
+    Else
+        extraRows = (stopMinutes - 16) \ 10 + 1
+    End If
     
-    ' ▼ 行を塗る（基本の1行 + extraRows）
+    ' ▼ 行を塗る（基本1行 + extraRows）
     For i = 0 To extraRows
-        If matchRow + i <= 73 Then   ' 範囲外に出ないように
+        If matchRow + i <= 73 Then
             ws.Cells(matchRow + i, "D").Interior.Color = RGB(255, 200, 200)
         End If
     Next i
-
+    
     ' ▼ フォームを閉じる
     Unload Me
 
