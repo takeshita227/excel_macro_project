@@ -21,7 +21,15 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     ' ▼ E4 を選択したとき → openingcheck を表で表示
     If Target.Address = "$E$4" Then
         openingcheck.Tag = Target.Address
-        openingcheck.Show        ' ★ 表で表示する
+        openingcheck.Show
+        Application.ScreenUpdating = True
+        Exit Sub
+    End If
+
+    ' ▼ E8:E73 を選択したとき → YOBIBAN を起動
+    If Not Intersect(Target, Me.Range("E8:E73")) Is Nothing Then
+        YOBIBAN.Tag = Target.Address
+        YOBIBAN.Show
         Application.ScreenUpdating = True
         Exit Sub
     End If
