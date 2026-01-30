@@ -16,6 +16,7 @@ Attribute VB_Exposed = False
 
 Option Explicit
 
+
 ' フォーム読み込み時、TextBoxにデフォルト値を設定
 Private Sub UserForm_Initialize()
     Dim selectedRow As Long
@@ -156,9 +157,6 @@ Private Sub TextBox4_Enter()
     Me.TextBox4.Text = ""
     Me.TextBox5.Text = ""
 End Sub
-
-
-' ▼ CommandButton3（送信ボタン）
 Private Sub CommandButton3_Click()
 
     Dim inputTime As String
@@ -201,7 +199,7 @@ Private Sub CommandButton3_Click()
     End If
     
     ' ▼ 停止時間を取得
-    stopTime = Me.TextBox3.Value
+    stopTime = Me.ComboBox3.Value   ' ← TextBox3 → ComboBox3 に変更
     
     ' ▼ 停止時間を分に変換
     On Error Resume Next
@@ -221,8 +219,26 @@ Private Sub CommandButton3_Click()
             ws.Cells(matchRow + i, "D").Interior.Color = RGB(255, 200, 200)
         End If
     Next i
-    
-    
+
+
+    Dim col1 As Long, col2 As Long, col3 As Long
+
+    ' AD = 30列目, AE = 31列目, AF = 32列目
+    col1 = 30   ' AD列：ComboBox1
+    col2 = 31   ' AE列：ComboBox2
+    col3 = 32   ' AF列：ComboBox3｜ComboBox4
+
+    ' ComboBox1 の値
+    ws.Cells(matchRow, col1).Value = Me.ComboBox1.Value
+
+    ' ComboBox2 の値
+    ws.Cells(matchRow, col2).Value = Me.ComboBox2.Value
+
+    ' ComboBox3 と ComboBox4 を区切って書く
+    ws.Cells(matchRow, col3).Value = Me.ComboBox3.Value & "｜" & Me.ComboBox4.Value
+
+
+
     ' ▼ フォームを閉じる
     Unload Me
 
@@ -230,4 +246,13 @@ End Sub
 
 Private Sub ComboBox1_Enter()
     LoadnikoMasterToComboBox Me.ComboBox1, "detail_line-stop_testmaster.xlsx"
+End Sub
+Private Sub ComboBox2_Enter()
+
+    If Me.ComboBox1.Value = "" Then Exit Sub
+
+    Loadniko2MasterToComboBox Me.ComboBox2, _
+                              "detail_line-stop_testmaster.xlsx", _
+                              Me.ComboBox1.Value
+
 End Sub
