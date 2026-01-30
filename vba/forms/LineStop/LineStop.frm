@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} LineStop 
    Caption         =   "ライン停止内容"
-   ClientHeight    =   13965
-   ClientLeft      =   255
-   ClientTop       =   1035
-   ClientWidth     =   12945
+   ClientHeight    =   12390
+   ClientLeft      =   300
+   ClientTop       =   750
+   ClientWidth     =   7665
    OleObjectBlob   =   "LineStop.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -228,6 +228,6 @@ Private Sub CommandButton3_Click()
 
 End Sub
 
-Private Sub ListBox1_Enter()
-    LoadMasterToListBox Me.ListBox1, "Line-stop_reason_testmaster.xlsx"
+Private Sub ComboBox1_Enter()
+    LoadnikoMasterToComboBox Me.ComboBox1, "detail_line-stop_testmaster.xlsx"
 End Sub
