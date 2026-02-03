@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} YOBIBAN 
    Caption         =   "呼番登録"
-   ClientHeight    =   7920
-   ClientLeft      =   135
-   ClientTop       =   570
-   ClientWidth     =   6570
+   ClientHeight    =   6336
+   ClientLeft      =   168
+   ClientTop       =   696
+   ClientWidth     =   8208.001
    OleObjectBlob   =   "YOBIBAN.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -15,7 +15,28 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
+'==========================================================
+' フォーム初期化：TextBox0 を時計としてセット
+'==========================================================
+Private Sub UserForm_Initialize()
+
+    ' ▼ 時計 TextBox（編集不可）
+    SetupClockTextBox Me.TextBox0
+
 End Sub
+
+
+'==========================================================
+' TextBox0（時計）保護
+'==========================================================
+Private Sub TextBox0_Change()
+    RestoreClockIfEmpty Me.TextBox0
+End Sub
+
+Private Sub TextBox0_Enter()
+    RestoreClockIfEmpty Me.TextBox0
+End Sub
+
 
 '==========================================================
 ' Enter を完全無効化（フォーム送信防止）
@@ -33,28 +54,23 @@ Private Sub TextBox1_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift
     Dim rawQR As String
     Dim displayID As String
 
-    ' Enterキーが押されたときだけ処理
     If KeyCode = vbKeyReturn Then
 
         rawQR = Trim(TextBox1.Text)
 
-        ' 文字数チェック
         If Len(rawQR) <> 75 Then
             MsgBox "スキャンするQRコード違います！完成品かんばんをスキャンしてください", vbExclamation
-            TextBox1.Value = ""     ' 初期化
-            TextBox2.Value = ""     ' 初期化
+            TextBox1.Value = ""
+            TextBox2.Value = ""
             KeyCode = 0
             Exit Sub
         End If
 
-        ' 26文字目から18文字を抜き出す（あなたの仕様）
         displayID = Mid(rawQR, 26, 18)
         TextBox2.Value = displayID
 
-        ' QR入力欄はクリアして次回スキャンに備える
         TextBox1.Value = ""
 
-        ' Enterをフォームに渡さない
         KeyCode = 0
     End If
 
