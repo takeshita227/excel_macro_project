@@ -1,21 +1,10 @@
-
 {
   "lists": {
     "user_list": {
       "description": "ユーザー一覧",
-      "path": "\\\\SERVER01\\share\\lists\\users.csv",
-      "type": "csv"
-    },
-    "product_list": {
-      "description": "製品マスタ",
-      "path": "\\\\SERVER01\\share\\lists\\products.xlsx",
-      "sheet": "master"
-    },
-    "holiday_list": {
-      "description": "休日カレンダー",
-      "path": "\\\\SERVER01\\share\\lists\\holiday.json",
-      "type": "json"
+      "path": "C:\\Users\\h_i_d\\Desktop\\ProductionSystem\\master\\excel\\user_master.xlsx",
+      "type": "excel",
+      "sheet": "Sheet1"
     }
   }
 }
-
