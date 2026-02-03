@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} LineStop 
    Caption         =   "ライン停止内容"
-   ClientHeight    =   15480
-   ClientLeft      =   300
-   ClientTop       =   750
-   ClientWidth     =   7665
+   ClientHeight    =   12396
+   ClientLeft      =   336
+   ClientTop       =   852
+   ClientWidth     =   9564.001
    OleObjectBlob   =   "LineStop.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
@@ -13,9 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 Option Explicit
-
 
 ' フォーム読み込み時、TextBoxにデフォルト値を設定
 Private Sub UserForm_Initialize()
@@ -157,6 +155,8 @@ Private Sub TextBox4_Enter()
     Me.TextBox4.Text = ""
     Me.TextBox5.Text = ""
 End Sub
+
+
 Private Sub CommandButton3_Click()
 
     Dim inputTime As String
@@ -165,6 +165,7 @@ Private Sub CommandButton3_Click()
     Dim matchRow As Long
     Dim stopTime As String
     Dim stopMinutes As Long
+    Dim stopSeconds As Long
     Dim extraRows As Long
     Dim i As Long
     
@@ -198,19 +199,18 @@ Private Sub CommandButton3_Click()
         Exit Sub
     End If
     
-    ' ▼ 停止時間を取得
-    stopTime = Me.ComboBox3.Value   ' ← TextBox3 → ComboBox3 に変更
+    ' ▼ 停止時間を取得（TextBox3 が正しい）
+stopTime = Me.TextBox3.Value
+
+' ▼ 停止時間を秒 → 分に変換（CDate を使わない）
+stopSeconds = TimeToSeconds(stopTime)
+stopMinutes = stopSeconds \ 60
     
-    ' ▼ 停止時間を分に変換
-    On Error Resume Next
-    stopMinutes = Hour(CDate(stopTime)) * 60 + Minute(CDate(stopTime))
-    On Error GoTo 0
-    
-    ' ▼ 停止時間に応じて追加行を決定
+    ' ▼ 停止時間に応じて追加行を決定（無制限対応）
     If stopMinutes <= 15 Then
         extraRows = 0
     Else
-        extraRows = (stopMinutes - 16) \ 10 + 1
+        extraRows = ((stopMinutes - 16) \ 10) + 1
     End If
     
     ' ▼ 行を塗る（基本1行 + extraRows）
@@ -223,36 +223,28 @@ Private Sub CommandButton3_Click()
 
     Dim col1 As Long, col2 As Long, col3 As Long
 
-    ' AD = 30列目, AE = 31列目, AF = 32列目
     col1 = 30   ' AD列：ComboBox1
     col2 = 31   ' AE列：ComboBox2
     col3 = 32   ' AF列：ComboBox3｜ComboBox4
 
-    ' ComboBox1 の値
     ws.Cells(matchRow, col1).Value = Me.ComboBox1.Value
-
-    ' ComboBox2 の値
     ws.Cells(matchRow, col2).Value = Me.ComboBox2.Value
-
-    ' ComboBox3 と ComboBox4 を区切って書く
     ws.Cells(matchRow, col3).Value = Me.ComboBox3.Value & "｜" & Me.ComboBox4.Value
 
-
-
-    ' ▼ フォームを閉じる
     Unload Me
 
 End Sub
 
+
 Private Sub ComboBox1_Enter()
     LoadnikoMasterToComboBox Me.ComboBox1, "detail_line-stop_testmaster.xlsx"
 End Sub
-Private Sub ComboBox2_Enter()
 
+Private Sub ComboBox2_Enter()
     If Me.ComboBox1.Value = "" Then Exit Sub
 
     Loadniko2MasterToComboBox Me.ComboBox2, _
                               "detail_line-stop_testmaster.xlsx", _
                               Me.ComboBox1.Value
-
 End Sub
+
